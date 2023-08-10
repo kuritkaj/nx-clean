@@ -7,29 +7,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-node@v2
+      # Set node/npm/yarn versions using volta
+      - uses: volta-cli/action@v4
         with:
-          node-version: '18'
+          package-json-path: '${{ github.workspace }}/package.json'
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
+      - name: Use the package manager cache if available
+        uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Fetch main
-        run: git fetch origin main
+            ${{ runner.os }}-
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
-      - uses: mansagroup/nrwl-nx-action@v2
+      - uses: mansagroup/nrwl-nx-action@v3
         with:
           targets: build,release
           projects: plugin-core,core
